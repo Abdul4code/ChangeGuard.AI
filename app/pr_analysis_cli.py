@@ -15,6 +15,11 @@ from app.analyzers.change_classifier import classify_changed_files
 from app.analyzers.test_gap_detector import detect_missing_or_related_tests
 from app.collectors.git_diff_collector import collect_changed_file_stats
 from app.reports.json_report import build_json_report, build_report_path, write_json_report
+from app.reports.markdown_report import (
+    build_markdown_report,
+    build_markdown_report_path,
+    write_markdown_report,
+)
 from app.risk.risk_scoring import calculate_risk_score
 
 
@@ -69,6 +74,19 @@ def run(args: argparse.Namespace) -> int:
     report_path = build_report_path(repo_path, args.base, args.head)
     written_path = write_json_report(report, report_path)
 
+    markdown_report = build_markdown_report(
+        repo_root=repo_path,
+        base_ref=args.base,
+        head_ref=args.head,
+        changes=changes,
+        categories=categories,
+        test_gap=test_gap,
+        risk=risk,
+    )
+    markdown_path = build_markdown_report_path(repo_path, args.base, args.head)
+    written_markdown_path = write_markdown_report(markdown_report, markdown_path)
+
     print(json.dumps(report, indent=2, sort_keys=True))
     print(f"Report written to: {written_path}")
+    print(f"Markdown report written to: {written_markdown_path}")
     return 0
