@@ -65,6 +65,7 @@ todo
 todo.md
 todo.txt
 *.todo
+project.md
 
 # Logs
 *.log
