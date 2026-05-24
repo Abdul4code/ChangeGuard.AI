@@ -18,6 +18,7 @@ from app.collectors.git_diff_collector import (
     InvalidRepoError,
     RepoNotCleanError,
     collect_changed_files,
+    collect_changed_file_stats,
 )
 
 
@@ -93,6 +94,49 @@ def test_collect_changed_files_no_changes(temp_git_repo):
     repo_path, base_branch = temp_git_repo
     changed_files = collect_changed_files(repo_path, base_branch, base_branch)
     assert changed_files == []
+
+
+def test_collect_changed_file_stats_counts(temp_git_repo):
+    """Test per-file line counts between two refs."""
+    repo_path, base_branch = temp_git_repo
+    stats = collect_changed_file_stats(repo_path, base_branch, "feature/test")
+    stats_by_path = {stat.path: stat for stat in stats}
+
+    assert stats_by_path["feature.py"].added == 1
+    assert stats_by_path["feature.py"].removed == 0
+    assert stats_by_path["feature.py"].change_type == "A"
+
+    assert stats_by_path["main.py"].added == 1
+    assert stats_by_path["main.py"].removed == 1
+    assert stats_by_path["main.py"].change_type == "M"
+
+
+def test_collect_changed_file_stats_rename():
+    """Test that rename metadata is captured for file moves."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        repo = _init_repo(tmpdir)
+
+        with repo.config_writer() as git_config:
+            git_config.set_value("user", "name", "Test User")
+            git_config.set_value("user", "email", "test@example.com")
+
+        old_file = Path(tmpdir) / "old.py"
+        old_file.write_text("# Old file\n")
+        repo.index.add([str(old_file)])
+        repo.index.commit("Add old file")
+
+        repo.git.mv(str(old_file), str(Path(tmpdir) / "new.py"))
+        repo.index.commit("Rename old file")
+
+        try:
+            stats = collect_changed_file_stats(tmpdir, "HEAD~1", "HEAD")
+        finally:
+            repo.close()
+
+        assert len(stats) == 1
+        assert stats[0].path == "new.py"
+        assert stats[0].old_path == "old.py"
+        assert stats[0].change_type == "R"
 
 
 def test_invalid_repo_path():
