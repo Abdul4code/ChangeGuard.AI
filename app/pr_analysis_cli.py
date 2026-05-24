@@ -8,7 +8,14 @@ is kept separate from CLI concerns.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
+
+from app.analyzers.change_classifier import classify_changed_files
+from app.analyzers.test_gap_detector import detect_missing_or_related_tests
+from app.collectors.git_diff_collector import collect_changed_file_stats
+from app.reports.json_report import build_json_report, build_report_path, write_json_report
+from app.risk.risk_scoring import calculate_risk_score
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -44,8 +51,24 @@ def run(args: argparse.Namespace) -> int:
         parser = build_parser()
         parser.error(f"--repo must point to an existing directory: {repo_path}")
 
-    print("ChangeGuard AI CLI Input")
-    print(f"repo: {repo_path}")
-    print(f"base: {args.base}")
-    print(f"head: {args.head}")
+    changes = collect_changed_file_stats(repo_path, args.base, args.head)
+    categories = classify_changed_files(repo_path, changes)
+    test_gap = detect_missing_or_related_tests(repo_path, changes)
+    risk = calculate_risk_score(changes, categories, test_gap)
+
+    report = build_json_report(
+        repo_root=repo_path,
+        base_ref=args.base,
+        head_ref=args.head,
+        changes=changes,
+        categories=categories,
+        test_gap=test_gap,
+        risk=risk,
+    )
+
+    report_path = build_report_path(repo_path, args.base, args.head)
+    written_path = write_json_report(report, report_path)
+
+    print(json.dumps(report, indent=2, sort_keys=True))
+    print(f"Report written to: {written_path}")
     return 0
