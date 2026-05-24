@@ -1,0 +1,91 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution and packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.race
+
+# Todo and documentation drafts
+TODO
+TODO.md
+TODO.txt
+todo
+todo.md
+todo.txt
+*.todo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Reports and outputs
+risk_report.json
+risk_report.md
+*.html
